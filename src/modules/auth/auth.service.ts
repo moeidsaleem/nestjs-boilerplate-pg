@@ -1,6 +1,10 @@
+/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import { Injectable, Logger } from '@nestjs/common';
 import { UsersService } from '../users/users.service';
 import { JwtService } from '@nestjs/jwt';
+import { AuthCredentialLoginDto } from './auth-credentials.dto';
+import { User } from '../users/user.entity';
 
 @Injectable()
 export class AuthService {
@@ -9,28 +13,36 @@ export class AuthService {
     private jwtService: JwtService
   ) {}
 
-  async validateUser(username: string, pass: string): Promise<any> {
-    const user = await this.usersService.findOne(username);
+  async validateUser(email:string, pass: string): Promise<any> {
+    Logger.log('mai chalaa')
+    const user = await this.usersService.findByEmail(email);
+    if(!user){
+      return 'no-user'
+    }
     if (user && user.password === pass) {
       const { password, ...result } = user;
-      return result;
+      return {...user};
+    }else{
+      return 'password-error'
     }
     return null;
   }
 
-  async login(user: any) {
-    const payload = { username: user.username, sub: user.userId };
+  async login(user :AuthCredentialLoginDto) {
+    const payload = user;
     return {
       access_token: this.jwtService.sign(payload),
     };
   }
 
 
-  async signup(user: any, data) {
-    Logger.log('SIGNUP ')
-    // const payload = {email}
-    return {
-      status: 'success'
-    }
+  async signUp(payload:User){
+   return await this.usersService.createUser(payload);
   }
+
+  async LoginWithGoogle(payload) {
+    return 
+  }
+  
+
 }

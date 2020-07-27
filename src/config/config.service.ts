@@ -1,7 +1,5 @@
 // src/config/config.service.ts
 import { TypeOrmModuleOptions } from '@nestjs/typeorm';
-import { join } from 'path';
-import fs, {writeFileSync , readFile} from 'fs'
 
 
 require('dotenv').config();
@@ -13,23 +11,14 @@ class ConfigService {
 
    }
 
-  private generateORMConfig(){
-    let value= this.getTypeOrmConfig()
-    console.log('orm', value);
-    const ormPath = `${__dirname}/../../ormconfig.json`
 
-    fs.writeFileSync('ormconfig.json',
- JSON.stringify(configService.getTypeOrmConfig(), null, 2)
-);
+   public getSendGridConfig(){
+    return {
+      apiKey: this.getValue('SENDGRID_APIKEY')
+    }
 
-    readFile(ormPath, 'utf8', (err, jsonString) => {
-     if (err) {
-         console.log("File read failed:", err)
-         return
-     }
-     console.log('File data:', jsonString) 
- })
-  }
+   }
+
   private getValue(key: string, throwOnMissing = true): string {
     const value = this.env[key];
     if (!value && throwOnMissing) {
@@ -61,11 +50,12 @@ class ConfigService {
       username: this.getValue('POSTGRES_USER'),
       password: this.getValue('POSTGRES_PASSWORD'),
       database: this.getValue('POSTGRES_DATABASE'),
+      synchronize: true,
+      autoLoadEntities: true,
 
       entities: [__dirname + '/../**/*.entity.{js,ts}'],
-      migrationsTableName: 'migration',
-
-      migrations: ['src/migration/*.ts'],
+      // migrationsTableName: 'migration',
+      // migrations: ['src/migration/*.ts'],
 
       cli: {
         migrationsDir: 'src/migration',
@@ -83,7 +73,8 @@ const configService = new ConfigService(process.env)
     'POSTGRES_PORT',
     'POSTGRES_USER',
     'POSTGRES_PASSWORD',
-    'POSTGRES_DATABASE'
+    'POSTGRES_DATABASE',
+    'SENDGRID_APIKEY'
   ]);
 
 export { configService };
